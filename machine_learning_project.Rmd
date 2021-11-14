@@ -1,0 +1,173 @@
+---
+title: "Practical Machine Learning - Coursera"
+author: "Zollo Gennaro"
+date: "November 14, 2021"
+output:html_document
+---
+  
+```{r setup, include=FALSE, results="hide", echo=FALSE, warning=FALSE, comment="", message=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Goal
+The goal of this project is to predict the manner in which people do the exercise. This is the "classe" variable in the training set. We may use any of the other variables to predict with. We create a report describing all the analysis and in particular the prediction of 20 different test cases.   
+    
+  
+The five different 'classe' factors in this dataset are: 
+	* Exactly according to the specification (Class A)
+	* Throwing the elbows to the front (Class B)
+	* Lifting the dumbbell only halfway (Class C)
+	* Lowering the dumbbell only halfway (Class D) 
+	* Throwing the hips to the front (Class E)
+    
+For more details, please read the section on [Weight Lifting Exercise Dataset](http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har)
+
+
+## Library
+```{r librarysetup, echo=FALSE, warning=FALSE, comment="", message=FALSE}
+library(caret)
+library(factoextra)
+library(rattle)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+```
+
+
+## Dataset
+```{r readcsvfile, echo=FALSE, warning=FALSE, comment="", message=FALSE}
+# use read.csv or fread
+pml_training <-"https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+pml_testing <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+training <- read.csv(url(pml_training),sep = ",", na.strings = c ("","NA"))
+testing <- read.csv(url(pml_testing),sep = ",", na.strings = c ("","NA"))
+```
+
+
+## Data Preprocessing  
+1. Check columns with NAs, Null and #DIV values and apply "0" value to all of them
+2. Remove first 7 and the last one columns in order to carry on the preprocessing step
+3. Convert all 'integer' columns to 'numeric'
+4. Check the predictor with the NON ZERO VARIANCE function
+5. Define dataset with covariate only
+
+```{r, results="hide", echo=FALSE, warning=FALSE, comment="", message=FALSE}
+#Treatment of NA, Null, #DIV values
+data.clean=apply(training[,1:160],2, function(x) length(which(x==""|x=="#DIV/0!"|is.na(x)))/length(x)>.95)
+length(data.clean[data.clean==TRUE])
+data.clean[data.clean==TRUE]
+#so, we have 100 variables with at least 95% of NA, null and #DIV values each.
+
+#Apply "0" to all NA, null, #DIV values
+data.clean=apply(data.clean[,1:152],2, function(x) ifelse(is.na(x) | x=="" | x=="#DIV/0!", "0",x))
+data.clean=data.frame(data.clean)
+
+#Remove first 7 and the last one columns 
+data.clean=training[,-c(1:7,160)] 
+
+#Convert all 'integer' columns to 'numeric'
+data.clean=apply(data.clean[,c(1:152)],c(1,2), as.numeric)
+data.clean=data.frame(data.clean)
+
+#Check the predictors with NON ZERO VARIANCE
+nsv=nearZeroVar(data.clean, saveMetrics = T)
+nsv
+#The result confirm the 100 predictors we have obtained above
+
+
+#The new dataset with covariates only is
+data.clean=data.clean[,-c(5:29,43:52,62:76,80:94,96:105,118:132,134:143)]
+```
+
+
+## Data Analysis
+1. Let's give a look at the correlation
+2. Let's go deep in with PCA
+
+```{r, results="hide", echo=FALSE, warning=FALSE, comment="", message=FALSE}
+#Let's give a look a the correlation matrix
+M=round(cor(data.clean),2)
+#we notice there is correlation between several variables
+
+##PCA####
+#Let's go deep in with PCA
+pca_mod=prcomp(data.clean, scale=T)
+
+#screeplot
+fviz_eig(pca_mod)
+
+#eigen values
+eig.val <- get_eigenvalue(pca_mod)
+
+#so we have 12 PC in order to explain 80% of variance. 
+```
+
+## Final dataset
+
+```{r, results="hide", echo=FALSE, warning=FALSE, comment="", message=FALSE}
+#Let's split training data set (80%) and a validation data set (20%).
+covariate$classe=training_new$classe
+train_final=covariate
+
+#Let's define the training and validation set
+set.seed(12345)
+inVal=createDataPartition(training.F$classe,p=.8, list=F )
+training.FF=training.F[inVal,]
+validation.FF=training.F[-inVal,]
+```
+
+
+## Data Modeling  
+We fit two predictive models for activity using **Random Forest** and **Boosting** algorithms. Looking at the dependent variable, they seem to be the right algorithm to predict that.
+  
+```{r, results="hide", echo=FALSE, warning=FALSE, comment="", message=FALSE}
+## RANDOM FOREST####
+rf.mod=train(classe~., data=training.FF, method="rf", preProc=c("center","scale"), verbose=F)
+getTree(rf.mod$finalModel, k=27)
+```
+  
+```{r, results="hide", echo=FALSE, warning=FALSE, comment="", message=FALSE}
+## BOOSTING#### 
+gbm.mod=train(classe~., data=training.FF, method="gbm", preProc=c("center","scale"), verbose=F)
+```
+  
+
+## Prediction 
+```{r, results="hide", echo=FALSE, warning=FALSE, comment="", message=FALSE}
+##RANDOM FOREST
+pred.rf.mod=predict(rf.mod, newdata = validation.FF)
+
+##BOOSTING
+pred.gbm.mod=predict(gbm.mod, newdata = validation.FF)
+```
+
+
+## Accuracy
+```{r, results="hide", echo=FALSE, warning=FALSE, comment="", message=FALSE}
+##RANDOM FOREST
+cfm.rf.mod=confusionMatrix(pred.rf.mod, validation.FF$classe)
+
+##BOOSTING
+cfm.gbm.mod=confusionMatrix(pred.gbm.mod, validation.FF$classe)
+
+##comparing results
+compare.model=data.frame(cfm.rf.mod$overall[1],cfm.gbm.mod$overall[1])
+names(compare.model) <- c("Random Forests","GBM")
+compare.model
+```
+
+
+## Predicting on test set
+```{r predicting, results="hide", echo=FALSE, warning=FALSE, comment="", message=FALSE}
+##We just remove the `problem_id` column because it seem to be a count of rows.
+##We predict the result with the two model and compare the results
+pred.test.rf.mod=predict(rf.mod, newdata = testing.F)
+pred.test.gbm.mod=predict(gbm.mod, newdata = testing.F)
+
+pred.F=data.frame(pred.test.rf.mod, pred.test.gbm.mod)
+names(pred.F) <- c("Random Forests","GBM")
+pred.F
+#watching at the result, predictions are equal with both the algorithms.
+```
+
+

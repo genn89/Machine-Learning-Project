@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="generator" content="pandoc" />
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+    <meta name="author" content="Gennaro Zollo" />
+
+    <meta name="date" content="2021-11-14" />
+
+    <title>Practical Machine Learning - Coursera</title>
+    
+    <script>
+      // Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+      // be compatible with the behavior of Pandoc < 2.8).
+      document.addEventListener("DOMContentLoaded", function (e) {
+        var hs = document.querySelectorAll(
+          "div.section[class*='level'] > :first-child"
+        );
+        var i, h, a;
+        for (i = 0; i < hs.length; i++) {
+          h = hs[i];
+          if (!/^h[1-6]$/i.test(h.tagName)) continue; // it should be a header h1-h6
+          a = h.attributes;
+          while (a.length > 0) h.removeAttribute(a[0].name);
+        }
+      });
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js" integrity="sha512-UDJtJXfzfsiPPgnI5S1000FPLBHMhvzAMX15I+qG2E2OAzC9P1JzUwJOfnypXiOH7MRPaqzhPbBGDNNj7zBfoA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.1/respond.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.sticky/1.0.4/jquery.sticky.min.js" integrity="sha512-QABeEm/oYtKZVyaO8mQQjePTPplrV8qoT7PrwHDJCBLqZl5UmuPi3APEcWwtTNOiH24psax69XPQtEo5dAkGcA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js" integrity="sha512-Pbb8o120v5/hN/a6LjF4N4Lxou+xYZ0QcVF8J6TWhBbHmctQWd8O6xTDmHpE/91OjPzCk4JRoiJsexHYg4SotQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+      h1 {
+        font-size: 34px;
+      }
+      h1.title {
+        font-size: 38px;
+      }
+      h2 {
+        font-size: 30px;
+      }
+      h3 {
+        font-size: 24px;
+      }
+      h4 {
+        font-size: 18px;
+      }
+      h5 {
+        font-size: 16px;
+      }
+      h6 {
+        font-size: 12px;
+      }
+      code {
+        color: inherit;
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+      pre:not([class]) {
+        background-color: white;
+      }
+	  
+	  table, th, td {
+  border:1px solid black !important;
+}
+    </style>
+
+    <style type="text/css">
+      code {
+        white-space: pre-wrap;
+      }
+      span.smallcaps {
+        font-variant: small-caps;
+      }
+      span.underline {
+        text-decoration: underline;
+      }
+      div.column {
+        display: inline-block;
+        vertical-align: top;
+        width: 50%;
+      }
+      div.hanging-indent {
+        margin-left: 1.5em;
+        text-indent: -1.5em;
+      }
+      ul.task-list {
+        list-style: none;
+      }
+    </style>
+
+    <style type="text/css">
+      code {
+        white-space: pre;
+      }
+    </style>
+
+    <script type="text/javascript">
+      if (window.hljs) {
+        hljs.configure({ languages: [] });
+        hljs.initHighlightingOnLoad();
+        if (document.readyState && document.readyState === "complete") {
+          window.setTimeout(function () {
+            hljs.initHighlighting();
+          }, 0);
+        }
+      }
+    </script>
+
+    <style type="text/css">
+      .main-container {
+        max-width: 940px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      img {
+        max-width: 100%;
+      }
+      .tabbed-pane {
+        padding-top: 12px;
+      }
+      .html-widget {
+        margin-bottom: 20px;
+      }
+      button.code-folding-btn:focus {
+        outline: none;
+      }
+      summary {
+        display: list-item;
+      }
+      pre code {
+        padding: 0;
+      }
+    </style>
+
+    <!-- tabsets -->
+
+    <style type="text/css">
+      .tabset-dropdown > .nav-tabs {
+        display: inline-table;
+        max-height: 500px;
+        min-height: 44px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .tabset-dropdown > .nav-tabs > li.active:before {
+        content: "";
+        font-family: "Glyphicons Halflings";
+        display: inline-block;
+        padding: 10px;
+        border-right: 1px solid #ddd;
+      }
+
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+        content: "";
+        border: none;
+      }
+
+      .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+        content: "";
+        font-family: "Glyphicons Halflings";
+        display: inline-block;
+        padding: 10px;
+        border-right: 1px solid #ddd;
+      }
+
+      .tabset-dropdown > .nav-tabs > li.active {
+        display: block;
+      }
+
+      .tabset-dropdown > .nav-tabs > li > a,
+      .tabset-dropdown > .nav-tabs > li > a:focus,
+      .tabset-dropdown > .nav-tabs > li > a:hover {
+        border: none;
+        display: inline-block;
+        border-radius: 4px;
+        background-color: transparent;
+      }
+
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+        display: block;
+        float: none;
+      }
+
+      .tabset-dropdown > .nav-tabs > li {
+        display: none;
+      }
+    </style>
+
+    <!-- code folding -->
+  </head>
+
+  <body>
+    <div class="container-fluid main-container">
+      <div id="header">
+        <h1 class="title toc-ignore">
+          Practical Machine Learning - Coursera
+        </h1>
+        <h4 class="author">Gennaro Zollo</h4>
+        <h4 class="date">November 14, 2021</h4>
+      </div>
+
+      <div id="executive-summary" class="section level2">
+        <h2>Abstract</h2>
+        <p>
+          The goal of this project is to predict the manner in which people do the exercise. This is the "classe" variable in the training set. We may use any of the other variables to predict with. We create a report describing all the analysis and in particular the prediction of 20 different test cases.
+        </p>
+        <p>
+          The five different ‘classe’ factors in this dataset are: 
+		  <ul>
+          <li>Exactly according to the specification (Class A)</li> 
+		  <li>Throwing the elbows to the front (Class B)</li>
+		  <li>Lifting the dumbbell only halfway (Class C)</li>
+		  <li>Lowering the dumbbell only halfway (Class D)</li>
+		  <li>Throwing the hips to the front (Class E)</li>
+		  </ul>
+        </p>
+        <p> 
+		For more details, please read the section on
+          <a
+            href="http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har"
+            >Weight Lifting Exercise Dataset</a
+          >
+        </p>
+      </div>
+      <div id="data-preprocessing" class="section level2">
+        <h2>Data Preprocessing</h2>
+        <ol style="list-style-type: decimal">
+          <li>Check columns with NAs, Null and #DIV values and apply "0" value to all of them</li>
+          <li>Remove first 7 and the last one columns in order to carry on the preprocessing step</li>
+          <li>
+            Convert all 'integer' columns to 'numeric'
+          </li>
+          <li>Check the predictor with the NON ZERO VARIANCE function</li>
+          <li>Define dataset with covariate only</li>
+          </ol>
+		   </div>
+      <div id="data-analysis" class="section level2">
+        <h2>Data Analysis and Final Dataset</h2>
+        <ol style="list-style-type: decimal">
+          <li>Let's give a look at the correlation</li>
+          <li>Let's go deep in with PCA</li>
+		  <li>Split training data set (80%) and a validation data set (20%)</li>
+          </ol>
+      </div>
+      <div id="data-modeling" class="section level2">
+        <h2>Data Modeling</h2>
+        <p>
+          We fit two predictive models for activity using Random Forest and Boosting algorithms. Looking at the dependent variable, they seem to be the right algorithm to predict that.
+        </p>
+        <p>
+		<h4>Confusion Matrix with Random Forest</h4>
+
+<table style="width:60%">
+  <tr>
+    <th>Prediction/Actual</th>
+    <th>A</th>
+    <th>B</th>
+    <th>C</th>
+    <th>D</th>
+    <th>E</th>
+  </tr>
+  <tr>
+  <th>A</th>
+    <td>1116</td>
+    <td>6</td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+  </tr>
+  <tr>
+  <th>B</th>
+    <td>0</td>
+    <td>751</td>
+    <td>3</td>
+    <td>0</td>
+    <td>0</td>
+  </tr>
+  <tr>
+  <th>C</th>
+    <td>0</td>
+    <td>2</td>
+    <td>679</td>
+    <td>7</td>
+    <td>1</td>
+  </tr>
+  <tr>
+  <th>D</th>
+    <td>0</td>
+    <td>0</td>
+    <td>2</td>
+    <td>653</td>
+    <td>1</td>
+  </tr>
+  <tr>
+  <th>E</th>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td>1</td>
+    <td>719</td>
+  </tr>
+</table>
+<br/>
+ <h4>Confusion Matrix with Boosting</h4>
+
+<table style="width:60%">
+  <tr>
+    <th>Prediction/Actual</th>
+    <th>A</th>
+    <th>B</th>
+    <th>C</th>
+    <th>D</th>
+    <th>E</th>
+  </tr>
+  <tr>
+  <th>A</th>
+    <td>1105</td>
+    <td>26</td>
+    <td>0</td>
+    <td>1</td>
+    <td>1</td>
+  </tr>
+  <tr>
+  <th>B</th>
+    <td>11</td>
+    <td>712</td>
+    <td>19</td>
+    <td>0</td>
+    <td>11</td>
+  </tr>
+  <tr>
+  <th>C</th>
+    <td>0</td>
+    <td>20</td>
+    <td>657</td>
+    <td>27</td>
+    <td>5</td>
+  </tr>
+  <tr>
+  <th>D</th>
+    <td>0</td>
+    <td>1</td>
+    <td>8</td>
+    <td>603</td>
+    <td>10</td>
+  </tr>
+  <tr>
+  <th>E</th>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td>12</td>
+    <td>694</td>
+  </tr>
+</table>
+<br/>
+        <div id="accuracy-and-prediction" class="section level3">
+          <h3>Accuracy and Prediction</h3>
+          <p>
+            The estimated accuracy of Random Forest is <strong>0.9941</strong><br />
+            The estimated accuracy of Boosting is <strong>0.9613</strong>
+          </p>
+          <h3>Prediction</h3>
+
+<table style="width:90%">
+    <th>Random Forest</th>
+    <td>B</td>
+<td>A</td>
+<td>B</td>
+<td>A</td>
+<td>A</td>
+<td>E</td>
+<td>D</td>
+<td>B</td>
+<td>A</td>
+<td>A</td>
+<td>B</td>
+<td>C</td>
+<td>B</td>
+<td>A</td>
+<td>E</td>
+<td>E</td>
+<td>A</td>
+<td>B</td>
+<td>B</td>
+<td>B</td>
+  </tr>
+  <tr>
+  <th>Boosting</th>
+        <td>B</td>
+<td>A</td>
+<td>B</td>
+<td>A</td>
+<td>A</td>
+<td>E</td>
+<td>D</td>
+<td>B</td>
+<td>A</td>
+<td>A</td>
+<td>B</td>
+<td>C</td>
+<td>B</td>
+<td>A</td>
+<td>E</td>
+<td>E</td>
+<td>A</td>
+<td>B</td>
+<td>B</td>
+<td>B</td>
+  </tr>
+ </table>
+          </p>
+        </div>
+      </div>
+      </div>
+      </div>
+    </div>
+
+    <script>
+      // add bootstrap table styles to pandoc tables
+      function bootstrapStylePandocTables() {
+        $("tr.odd")
+          .parent("tbody")
+          .parent("table")
+          .addClass("table table-condensed");
+      }
+      $(document).ready(function () {
+        bootstrapStylePandocTables();
+      });
+    </script>
+
+    <!-- tabsets -->
+
+    <script>
+      $(document).ready(function () {
+        window.buildTabsets("TOC");
+      });
+
+      $(document).ready(function () {
+        $(".tabset-dropdown > .nav-tabs > li").click(function () {
+          $(this).parent().toggleClass("nav-tabs-open");
+        });
+      });
+    </script>
+
+    <script></script>
+
+    <!-- code folding -->
+
+    <!-- dynamically load mathjax for compatibility with self-contained -->
+    <script>
+      (function () {
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src =
+          "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+        document.getElementsByTagName("head")[0].appendChild(script);
+      })();
+    </script>
+  </body>
+</html>
